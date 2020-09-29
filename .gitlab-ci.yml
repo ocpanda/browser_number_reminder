@@ -9,26 +9,26 @@ services:
 before_script:
   - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
 
-production_build:
-  stage: build
-  only:
-    - /^.*--prod$/
-  except:
-    - branches
-  script:
-    - docker build --build-arg "SET_TAG=${CI_COMMIT_TAG}" --build-arg "SET_CONFIG=http://jdnrsaengine.gakkixmasami.com" --build-arg "SET_PING_URL=http://jdnrsaengine.gakkixmasami.com/ping" --pull -t "$CI_REGISTRY_IMAGE:${CI_COMMIT_SHA:0:8}" .
-    - docker push "$CI_REGISTRY_IMAGE:${CI_COMMIT_SHA:0:8}"
-  environment:
-    name: PROD
-
-develop_build:
+DEV build:
   stage: build
   only:
     - /^.*--dev$/
   except:
     - branches
   script:
-    - docker build --build-arg "SET_TAG=${CI_COMMIT_TAG}" --build-arg "SET_CONFIG=http://jdnrsaengine.gakkixmasami.com" --build-arg "SET_PING_URL=http://jdnrsaengine.gakkixmasami.com/ping" --pull -t "$CI_REGISTRY_IMAGE:${CI_COMMIT_SHA:0:8}" .
+    - docker build --pull -t "$CI_REGISTRY_IMAGE:${CI_COMMIT_SHA:0:8}" .
     - docker push "$CI_REGISTRY_IMAGE:${CI_COMMIT_SHA:0:8}"
   environment:
     name: DEV
+
+PRD build:
+  stage: build
+  only:
+    - /^v.*$/
+  except:
+    - branches
+  script:
+    - docker build --pull -t "$CI_REGISTRY_IMAGE:${CI_COMMIT_SHA:0:8}" .
+    - docker push "$CI_REGISTRY_IMAGE:${CI_COMMIT_SHA:0:8}"
+  environment:
+    name: PRD

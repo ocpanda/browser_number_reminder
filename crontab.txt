@@ -1,1 +1,1 @@
-*/5 * * * * sh /usr/src/app/bot.sh
+00 09 * * * sh /usr/src/app/bot.sh

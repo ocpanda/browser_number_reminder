@@ -1,5 +1,8 @@
 FROM node:10.18.0 as build-deps
 
+RUN apt update
+RUN apt install cron
+
 # Create app directory
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app

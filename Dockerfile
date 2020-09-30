@@ -14,8 +14,8 @@ RUN npm install
 # Bundle app source
 COPY . /usr/src/app
 
-CMD [ "crontab", "/usr/src/app/crontab.txt" ]
-CMD [ "service", "cron", "restart" ]
+RUN [ "crontab", "/usr/src/app/crontab.txt" ]
+RUN [ "service", "cron", "restart" ]
 
 EXPOSE 8080
 CMD [ "npm", "start" ]

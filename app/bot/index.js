@@ -1,16 +1,30 @@
+// *** Slack 瀏覽器通知機器人 ***
+// 此服務用於每日觸發爬蟲取得瀏覽器版本，並發送訊息至slack
+
 const cheerio = require('cheerio')
 const request = require('request')
 const dayjs = require('dayjs')
+const store = require('../../database/store')
 
-const urls = [
+const STAGE = global.STAGE
+const testData = require('../../test/testData')
+
+const SLACK_PROD_URL = 'https://hooks.slack.com/services/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'
+const SLACK_DEV_URL = 'https://hooks.slack.com/services/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'
+
+const URLS_PROD = [
   {url: 'https://www.whatismybrowser.com/guides/the-latest-version/chrome?utm_source=whatismybrowsercom&utm_medium=internal&utm_campaign=detect-index', platform: 'Chrome'},
   {url: 'https://www.whatismybrowser.com/guides/the-latest-version/firefox?utm_source=whatismybrowsercom&utm_medium=internal&utm_campaign=detect-index', platform: 'Firefox'},
   {url: 'https://www.whatismybrowser.com/guides/the-latest-version/edge?utm_source=whatismybrowsercom&utm_medium=internal&utm_campaign=detect-index', platform: 'Edge'},
   {url: 'https://www.whatismybrowser.com/guides/the-latest-version/safari?utm_source=whatismybrowsercom&utm_medium=internal&utm_campaign=detect-index', platform: 'Safari'},
   {url: 'https://www.whatismybrowser.com/guides/the-latest-version/opera?utm_source=whatismybrowsercom&utm_medium=internal&utm_campaign=detect-index', platform: 'Opera'},
 ]
+const URLS_DEV = [
+  {url: '', platform: 'Chrome'},
+  {url: '', platform: 'Firefox'},
+]
 
-module.exports = (req, res) => {
+module.exports = async (req, res) => {
   getVersionData()
 
   let message = `取得${dayjs().format('YYYY/MM/DD')} 的更新資訊中，請稍候…`;
@@ -18,6 +32,8 @@ module.exports = (req, res) => {
 }
 
 async function getVersionData () {
+  let urls = (STAGE === 'prod') ? URLS_PROD : URLS_DEV
+
   for (let url of urls) {
     await setTimeout(() => {
       webCrawler(url)
@@ -26,20 +42,35 @@ async function getVersionData () {
 }
 
 function webCrawler (url) {
-  request(url.url, (err, res, body) => {
-    if (!err && res.statusCode == 200) {
-      const $ = cheerio.load(body)
+  if (STAGE === 'prod') {
+    request(url.url, (err, res, body) => {
+      if (!err && res.statusCode == 200) {
+        const $ = cheerio.load(body)
 
-      let versionNumbers = []
-      $('#content .table tbody tr').each(function(i, elem) {
-        versionNumbers.push($(this).text().split('\n'))
-      })
+        let versionNumbers = []
+        $('#content .table tbody tr').each(function(i, elem) {
+          versionNumbers.push($(this).text().split('\n'))
+        })
 
-      sendToSlack(settingMessage(versionNumbers, url.platform))
-    } else {
-      console.log(`出錯誤了！！ ${err}`)
-    }
-  })
+        let result = store.parsePushData(versionNumbers, url.platform)
+
+        sendToSlack(settingMessage(result, url.platform))
+      } else {
+        console.log(`爬蟲出錯誤了！！ ${err}`)
+      }
+    })
+  }
+  // 為避免測試太多次爬蟲被黑名單，開發模式使用寫死的測試資料
+  else if (STAGE === 'dev') {
+    let data = []
+
+    if (url.platform === 'Chrome') data = testData.chrome
+    else if (url.platform === 'Firefox') data = testData.firefox
+
+    let result = store.parsePushData(data, url.platform)
+
+    sendToSlack(result, url.platform)
+  }
 }
 
 function settingMessage (messages, platform) {
@@ -63,12 +94,14 @@ function settingMessage (messages, platform) {
   return result
 }
 
-function sendToSlack (messages) {
+function sendToSlack (browserDatas, platform) {
+  let messages = settingMessage(browserDatas, platform)
+
   let result = {
     text: messages
   }
   let options = {
-    url: 'https://hooks.slack.com/services/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',
+    url: (STAGE === 'prod') ? SLACK_PROD_URL : SLACK_DEV_URL,
     method: 'POST',
     headers: {
       'Content-type': 'application/json',
@@ -77,7 +110,11 @@ function sendToSlack (messages) {
   }
 
   request(options, (err, res, body) => {
-    console.log(err, res, body)
+    if (!err && res.statusCode == 200) {
+      store.appendUnrecordData(browserDatas, platform)
+    } else {
+      console.log(`傳送資料至Slack出錯誤了！！ ${err}`)
+    }
   })
 }
 

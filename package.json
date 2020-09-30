@@ -11,7 +11,8 @@
     "cheerio": "^1.0.0-rc.3",
     "dayjs": "^1.8.36",
     "express": "^4.17.1",
-    "request": "^2.88.2"
+    "request": "^2.88.2",
+    "sha1": "^1.1.1"
   },
   "license": "MIT",
   "devDependencies": {}

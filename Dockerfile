@@ -1,7 +1,7 @@
 FROM node:10.18.0 as build-deps
 
 RUN apt-get update
-RUN apt-get install cron
+RUN apt-get install -y cron
 
 # Create app directory
 RUN mkdir -p /usr/src/app

@@ -19,7 +19,7 @@
 > 注意使用正式版時不要主動戳api。
 
 1. server.js第四行 `global.STAGE` 賦值為 `PROD`
-2. tag格式 *--prod
+2. tag格式 v*
 3. 將tag推上gitlab會開始編譯image
 4. 將image的tag放上k8s的`	browser-number-reminder-deployment`(lego開發內)
 

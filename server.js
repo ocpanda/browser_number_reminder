@@ -1,7 +1,7 @@
 // 設定模式 正式 prod, 開發 dev
 const DEV = 'dev'
 const PROD = 'prod'
-global.STAGE = DEV
+global.STAGE = PROD
 
 const SLACK_PROD_URL = 'https://hooks.slack.com/services/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'
 const SLACK_DEV_URL = 'https://hooks.slack.com/services/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'

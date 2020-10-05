@@ -1,4 +1,4 @@
-const helper = require('../helper')
+const helper = require('../helpler')
 const fs = require('fs')
 
 const STAGE = global.STAGE
@@ -8,6 +8,9 @@ module.exports = {
   init: executeInit,
   parsePushData: parsePushData,
   appendUnrecordData: appendUnrecordData,
+  writeHistoryFile: writeFile,
+  getHistory: getHistory,
+  isHistoryFileExist: isHistoryFileExist,
 }
 
 // 篩選出未被加入到history.json的資料
@@ -30,50 +33,50 @@ function parsePushData (data, platform) {
   return result
 }
 
-async function appendUnrecordData (datas, platform) {
+async function appendUnrecordData (datas, platform, hasPush = true, isRePush = false) {
   let historyData = getHistory()
   for (let item of datas) {
     let result = {
       "platform": platform,
-      "browser": helper.browserStringFormatter(item, platform),
-      "version": helper.browserVersionFormatter(item, platform),
-      "date": helper.browserUpdateDateFormatter(item, platform),
-      "hasPush": true,
+      "browser": (!isRePush) ? helper.browserStringFormatter(item, platform) : item.browser,
+      "version": (!isRePush) ? helper.browserVersionFormatter(item, platform) : item.version,
+      "date": (!isRePush) ? helper.browserUpdateDateFormatter(item, platform) : item.date,
+      "hasPush": hasPush,
     }
-    let str = helper.sha1BrowserInfoStringFormatter(item, platform)
+    let str = helper.sha1BrowserInfoStringFormatter(item, platform, isRePush)
     historyData[str] = result
   }
   try {
     await writeFile(historyData)
   } catch (e) {
-    console.log(e)
+    await helper.sendLog(e)
   }
 }
 
 async function executeInit () {
   try {
-    if (!isFileExist()) await createFile()
+    if (!isHistoryFileExist()) await createFile()
   } catch (e) {
-    console.log(e)
+    await helper.sendLog(e)
   }
 }
 
-function isFileExist () {
+function isHistoryFileExist () {
   if (fs.existsSync(DATA_PATH)) return true
   else return false
 }
 
 async function createFile () {
-  await fs.writeFile(DATA_PATH, JSON.stringify({}), (err) => {
+  await fs.writeFile(DATA_PATH, JSON.stringify({}), async (err) => {
     if (err) throw err
-    console.log('已成功建立瀏覽器版本歷史檔')
+    await helper.sendLog('已成功建立瀏覽器版本歷史檔')
   })
 }
 
 async function writeFile (data) {
-  await fs.writeFile(DATA_PATH, JSON.stringify(data), (err) => {
+  await fs.writeFile(DATA_PATH, JSON.stringify(data), async (err) => {
     if(err) throw err
-    console.log('成功寫入歷史資料')
+    await helper.sendLog(`成功寫入歷史資料 ${JSON.stringify(data)}`)
   })
 }
 

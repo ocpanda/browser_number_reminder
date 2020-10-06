@@ -11,6 +11,7 @@ const bot = require('./app/bot')
 const scanner = require('./app/scanner')
 const store = require('./database/store')
 const express = require('express')
+const helpler = require('./helpler')
 
 const PORT = 8080
 
@@ -19,13 +20,21 @@ const app = express()
 
 // 爬蟲機器人
 app.get('/', async (req, res) => {
-  await store.init()
-  await bot.exec(req, res)
+  try {
+    await store.init()
+    await bot.exec(req, res)
+  } catch (e) {
+    await helpler.sendLog(e)
+  }
 })
 
 // 歷史資料回補機器人
 app.get('/scanner', async (req, res) => {
-  await scanner(req, res)
+  try {
+    await scanner(req, res)
+  } catch (e) {
+    await helpler.sendLog(e)
+  }
 })
 
 app.listen(PORT)

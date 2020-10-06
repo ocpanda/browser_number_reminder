@@ -48,7 +48,15 @@ async function getVersionData () {
 
 function webCrawler (url) {
   if (STAGE === 'prod') {
-    request(url.url, async (err, res, body) => {
+    let options = {
+      url: url.url,
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1 Safari/605.1.15',
+      },
+    }
+
+    request(options, async (err, res, body) => {
       if (!err && res.statusCode == 200) {
         const $ = cheerio.load(body)
 

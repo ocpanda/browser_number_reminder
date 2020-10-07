@@ -5,8 +5,8 @@ global.STAGE = PROD
 
 const SLACK_PROD_URL = 'https://hooks.slack.com/services/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'
 const SLACK_DEV_URL = 'https://hooks.slack.com/services/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'
-// global.SLACK_URL = (global.STAGE === 'prod') ? SLACK_PROD_URL : SLACK_DEV_URL
-global.SLACK_URL = SLACK_DEV_URL
+global.SLACK_URL = (global.STAGE === 'prod') ? SLACK_PROD_URL : SLACK_DEV_URL
+// global.SLACK_URL = SLACK_DEV_URL
 
 const bot = require('./app/bot')
 const scanner = require('./app/scanner')

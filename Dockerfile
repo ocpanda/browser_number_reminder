@@ -15,7 +15,7 @@ RUN npm install
 COPY . /usr/src/app
 
 RUN [ "crontab", "/usr/src/app/crontab.txt" ]
-RUN [ "service", "cron", "start" ]
+CMD [ "service", "cron", "start" ]
 
 EXPOSE 8080
 CMD [ "npm", "start" ]

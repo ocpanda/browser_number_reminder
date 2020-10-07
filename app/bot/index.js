@@ -55,11 +55,9 @@ function webCrawler (url) {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1 Safari/605.1.15',
       },
     }
-
     request(options, async (err, res, body) => {
       if (!err && res.statusCode == 200) {
         const $ = cheerio.load(body)
-
         let versionNumbers = []
         $('#content .table tbody tr').each(function(i, elem) {
           versionNumbers.push($(this).text().split('\n'))
@@ -67,7 +65,7 @@ function webCrawler (url) {
 
         let result = store.parsePushData(versionNumbers, url.platform)
 
-        sendToSlack(settingMessage(result, url.platform))
+        sendToSlack(result, url.platform)
       } else {
         await helper.sendLog(`爬蟲出錯誤了！！ ${err}`)
       }
